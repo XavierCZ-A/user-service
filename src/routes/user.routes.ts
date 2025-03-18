@@ -7,14 +7,17 @@ import type {
 import { UserRepository } from "../repositories/user.repository";
 import { UserService } from "../services/user.service";
 import { UserController } from "../controllers/user.controller";
-const router = Router();
+import { validateData } from "../middlewares/validateData";
+import { userSchema } from "../schemas/user.schema";
+
+const userRouter = Router();
 
 const userRepository: IUserRepository = new UserRepository();
 const userService: IUserService = new UserService(userRepository);
 const userController: IUserController = new UserController(userService);
 
-router.post("/user", userController.create);
-router.delete("/user/:id", userController.delete);
-router.put("/user/:id", userController.update);
+userRouter.post("/", validateData(userSchema), userController.create);
+userRouter.delete("/:id", userController.delete);
+userRouter.put("/:id", userController.update);
 
-export default router;
+export default userRouter;

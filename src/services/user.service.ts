@@ -1,4 +1,4 @@
-import { createHmac } from "node:crypto";
+import bcrypt from "bcrypt";
 import type {
 	CreateUserDto,
 	IUserRepository,
@@ -6,6 +6,9 @@ import type {
 	UpdateUserDto,
 	User,
 } from "../types/user";
+import { CustomError, PrismaError } from "../errors/customError";
+import { Prisma } from "@prisma/client";
+import { hashPassword } from "../utils/hashedPassword";
 
 export class UserService implements IUserService {
 	private userRepository: IUserRepository;
@@ -14,10 +17,28 @@ export class UserService implements IUserService {
 	}
 
 	async createUser(user: CreateUserDto): Promise<User> {
-		const { password } = user;
-		const hashPassword = createHmac("sha256", password).digest("hex");
-		console.log(hashPassword);
-		return await this.userRepository.create(user);
+		const existingUser = await this.userRepository.findOneByEmail(user.email);
+		if (existingUser) {
+			throw new CustomError("El correo ya está en uso", 409, "DUPLICATE_ENTRY");
+		}
+
+		try {
+			const hashedPassword = await hashPassword(user.password);
+
+			const newUser = { ...user, password: hashedPassword };
+
+			return await this.userRepository.create(newUser);
+		} catch (error) {
+			if (error instanceof Prisma.PrismaClientKnownRequestError) {
+				throw new PrismaError("Error al crear usuario", error);
+			}
+
+			throw new CustomError(
+				"Error interno al crear usuario",
+				500,
+				"INTERNAL_ERROR",
+			);
+		}
 	}
 
 	async updateUser(id: number, user: UpdateUserDto): Promise<User | null> {

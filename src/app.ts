@@ -1,5 +1,6 @@
 import express from "express";
-import router from "./routes/user.routes";
+import router from "./routes";
+import { errorHandler } from "./middlewares/errorHandler";
 // import routes from "./routes"; // Importar las rutas
 
 const app = express();
@@ -15,5 +16,17 @@ app.get("/health", (req, res) => {
 
 // Routes
 app.use("/api", router);
+
+// Error handler
+app.use(
+	(
+		err: Error,
+		req: express.Request,
+		res: express.Response,
+		next: express.NextFunction,
+	) => {
+		errorHandler(err, req, res, next);
+	},
+);
 
 export default app;

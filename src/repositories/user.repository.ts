@@ -19,4 +19,8 @@ export class UserRepository implements IUserRepository {
 		await prisma.user.delete({ where: { id } });
 		return true;
 	}
+
+	findOneByEmail(email: string): Promise<User | null> {
+		return prisma.user.findFirst({ where: { email } });
+	}
 }

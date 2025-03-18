@@ -1,4 +1,4 @@
-import type { Request, Response } from "express";
+import type { NextFunction, Request, Response } from "express";
 
 export interface User {
 	id: number;
@@ -31,10 +31,11 @@ export interface IUserRepository {
 	create(data: CreateUserDto): Promise<User>;
 	update(id: number, data: UpdateUserDto): Promise<User | null>;
 	delete(id: number): Promise<boolean>;
+	findOneByEmail(email: string): Promise<User | null>;
 }
 
 export interface IUserController {
-	create(req: Request, res: Response): Promise<void>;
-	update(req: Request, res: Response): Promise<void>;
-	delete(req: Request, res: Response): Promise<void>;
+	create(req: Request, res: Response, next: NextFunction): Promise<void>;
+	update(req: Request, res: Response, next: NextFunction): Promise<void>;
+	delete(req: Request, res: Response, next: NextFunction): Promise<void>;
 }

@@ -1,4 +1,4 @@
-import type { Request, Response } from "express";
+import type { NextFunction, Request, Response } from "express";
 import type { IUserController, IUserService } from "../types/user";
 
 export class UserController implements IUserController {
@@ -7,18 +7,25 @@ export class UserController implements IUserController {
 		this.userService = userService;
 	}
 
-	create = async (req: Request, res: Response): Promise<void> => {
+	create = async (
+		req: Request,
+		res: Response,
+		next: NextFunction,
+	): Promise<void> => {
 		try {
 			const user = req.body;
 			const createdUser = await this.userService.createUser(user);
 			res.status(201).json({ success: true, data: createdUser });
 		} catch (error) {
-			console.error(error);
-			res.status(500).json({ success: false, error: "Internal server error" });
+			next(error);
 		}
 	};
 
-	update = async (req: Request, res: Response): Promise<void> => {
+	update = async (
+		req: Request,
+		res: Response,
+		next: NextFunction,
+	): Promise<void> => {
 		try {
 			const { id } = req.params;
 			const user = req.body;
@@ -29,23 +36,25 @@ export class UserController implements IUserController {
 			}
 			res.status(200).json({ success: true, data: updatedUser });
 		} catch (error) {
-			console.error(error);
-			res.status(500).json({ success: false, error: "Internal server error" });
+			next(error);
 		}
 	};
 
-	delete = async (req: Request, res: Response): Promise<void> => {
+	delete = async (
+		req: Request,
+		res: Response,
+		next: NextFunction,
+	): Promise<void> => {
 		try {
 			const { id } = req.params;
-			const deleted = await this.userService.deleteUser(Number(id));
-			if (!deleted) {
+			const user = await this.userService.deleteUser(Number(id));
+			if (!user) {
 				res.status(404).json({ success: false, error: "User not found" });
 				return;
 			}
-			res.status(200).json({ success: true, data: deleted });
+			res.status(200).json({ success: true, data: user });
 		} catch (error) {
-			console.log(error);
-			res.status(500).json({ success: false, error: "Internal server error" });
+			next(error);
 		}
 	};
 }
